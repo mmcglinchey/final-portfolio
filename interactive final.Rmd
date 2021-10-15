@@ -1,0 +1,68 @@
+
+```{r  quiet = TRUE, echo = FALSE, include = FALSE}
+library(leaflet)
+library(sf)
+library(tidyverse)
+library(tidycensus)
+library(ggthemes)
+library(ggspatial)
+library(htmlwidgets)
+library(tidytransit)
+```
+
+```{r  quiet = TRUE, echo = FALSE, include = FALSE}
+acs_vars <- load_variables(2019, "acs5")
+```
+
+```{r quiet = TRUE, echo = FALSE, include = FALSE}
+TX_state_plane <- "+proj=lcc +lat_1=36.18333333333333 +lat_2=34.65 +lat_0=34 +lon_0=-101.5 +x_0=200000.0001016002 +y_0=999999.9998983998 +ellps=GRS80 +datum=NAD83 +to_meter=0.3048006096012192 +no_defs"
+```
+
+```{r  quiet = TRUE, echo = FALSE, include = FALSE}
+Vehicles_Tarrant <- get_acs(geography = "tract", county = "Tarrant", state = "TX", year = 2019, survey = "acs5", variables = c(tot_car = "B08014_001", no_car = "B08014_002"), output = "wide", geometry = TRUE)
+```
+
+```{r  quiet = TRUE, echo = FALSE, include = FALSE}
+Vehicles_Tarrant <- Vehicles_Tarrant %>%
+  select(-tot_carM, -no_carM) %>%
+  filter(tot_carE > 0) %>%
+  mutate(pct_car = round(100 * no_carE / tot_carE, 1))
+```
+
+```{r  quiet = TRUE, echo = FALSE, include = FALSE}
+Vehicles_palette <- colorNumeric(c("wheat1", "darkblue"), Vehicles_Tarrant$pct_car)
+
+Vehicles_map <- leaflet(Vehicles_Tarrant) %>%
+  addProviderTiles("Stamen.TonerLite") %>%
+  addPolygons(fillColor = ~Vehicles_palette(pct_car), weight = 1, color = "gray", fillOpacity = 0.7, highlightOptions = highlightOptions(fillColor = "yellow", fillOpacity = 0.9), label = Vehicles_Tarrant$NAME, popup = paste("Total population: ", Vehicles_Tarrant$tot_carE, "<br/>", "People with no available vehicle: ", Vehicles_Tarrant$pct_car, "%", sep = "")) %>%
+  addLegend("bottomright", pal = Vehicles_palette, values = ~pct_car, title = "Percent of population without access to a vehicle", labFormat = labelFormat(suffix = "%"), opacity = 1)
+
+Vehicles_map2 <- leaflet(Vehicles_Tarrant) %>%
+  addProviderTiles("Stamen.TonerLite") %>%
+  addPolygons(color = ~Vehicles_palette(pct_car), stroke = FALSE, fillOpacity = 0.7,
+              highlightOptions = highlightOptions(fillColor = "green", fillOpacity = 0.9),
+              label = Vehicles_Tarrant$NAME,
+              popup = paste("Total population: ", Vehicles_Tarrant$tot_carE, "<br/>", 
+                            "Households without access to a vehicle: ", Vehicles_Tarrant$no_carE, " (",
+                           Vehicles_Tarrant$pct_car, "%)", sep = "")) %>%
+    addLegend("bottomright", pal = Vehicles_palette, values = ~pct_car,
+    title = "Percent of population<br/>without access to a vehicle",
+    labFormat = labelFormat(suffix = "%"),
+    opacity = 1)
+```
+
+```{r  quiet = TRUE, echo = FALSE}
+limits <- st_bbox(Vehicles_Tarrant)
+
+Vehicles_map3 <- Vehicles_map2 %>%
+   fitBounds( lng1 = as.numeric(limits[1]),
+                lat1 = as.numeric(limits[2]),
+                lng2 = as.numeric(limits[3]),
+                lat2 = as.numeric(limits[4])) %>%
+   setMaxBounds( lng1 = as.numeric(limits[1]),
+                lat1 = as.numeric(limits[2]),
+                lng2 = as.numeric(limits[3]),
+                lat2 = as.numeric(limits[4])) 
+
+Vehicles_map3
+```

@@ -46,5 +46,5 @@ This georeferenced map from the Harvard Map Collection shows the impact of poten
 # Tarrant County, TX
 I grew up in Bedford, TX, which is located in Tarrant County between Dallas and Fort Worth. Given that the Dallas/Ft. Worth region is both sprawling and serviced by few reliable transit options, I was curious to explore how many residents in the region don't have access to a car.  Using data from the 2019 American Communities Survey, this map shows that there are census tracts where up to 12% of people don't have an available vehicle.
 
-[![](thumbnails/interactivemap.png)](https://mmcglinchey.github.io/final-portfolio/fullsize/Assignment-6_Interactive-Map.html){target="_blank"}
+[![](thumbnails/interactivemap.png)](https://mmcglinchey.github.io/final-portfolio/fullsize/interactive-final.html){target="_blank"}
 
